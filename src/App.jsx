@@ -1,131 +1,171 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Crown, Star, Home, Building, Truck, Phone, Mail, MapPin, Menu, X, Check, ArrowRight, Sparkles, Upload, Image as ImageIcon, Heart, Loader2 } from 'lucide-react';
+// FULL APP.JSX — SINGLE UPLOAD BOX → MULTIPLE FILE ATTACHMENTS
+// Based on original upload: :contentReference[oaicite:0]{index=0}
 
-// --- STEP 1: UNCOMMENT THIS LINE LOCALLY AFTER RUNNING: npm install @emailjs/browser ---
-// import emailjs from '@emailjs/browser';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Crown,
+  Star,
+  Home,
+  Building,
+  Truck,
+  Phone,
+  Mail,
+  MapPin,
+  Menu,
+  X,
+  Check,
+  ArrowRight,
+  Sparkles,
+  Upload,
+  Image as ImageIcon,
+  Heart,
+  Loader2,
+} from "lucide-react";
+
+import emailjs from "@emailjs/browser";
+
+/* ---------------------------------------------------------
+   Utility to convert a File → FileList (for hidden fields)
+--------------------------------------------------------- */
+function createFileList(file) {
+  if (!file) return null;
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  return dataTransfer.files;
+}
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  
-  // Reference for EmailJS to access the form directly
+
   const form = useRef();
 
-  // --- FORM STATE ---
   const [formData, setFormData] = useState({
-    user_name: '', // Changed to match common EmailJS template defaults
-    user_phone: '',
-    message: ''
+    user_name: "",
+    user_phone: "",
+    message: "",
   });
-  const [files, setFiles] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error' | null
 
-  // Handle scroll effect for navbar
+  // File input references for EmailJS hidden fields
+  const fileInput1Ref = useRef(null);
+  const fileInput2Ref = useRef(null);
+  const fileInput3Ref = useRef(null);
+
+  // For UI preview
+  const [fileNames, setFileNames] = useState([]);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (element) element.scrollIntoView({ behavior: "smooth" });
     setIsMenuOpen(false);
   };
 
-  // --- FORM HANDLERS ---
-  
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [e.target.name]: e.target.value,
     }));
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
-      setFiles(newFiles);
-    }
+  /* ---------------------------------------------------------
+     SINGLE UPLOAD BOX → Assign files to 3 hidden inputs
+  --------------------------------------------------------- */
+  const handleUnifiedFileUpload = (e) => {
+    const selectedFiles = Array.from(e.target.files).slice(0, 3);
+
+    // update preview
+    setFileNames(selectedFiles.map((f) => f.name));
+
+    // assign each file into hidden EmailJS-compatible fields
+    if (fileInput1Ref.current)
+      fileInput1Ref.current.files = createFileList(selectedFiles[0]);
+    if (fileInput2Ref.current)
+      fileInput2Ref.current.files = createFileList(selectedFiles[1]);
+    if (fileInput3Ref.current)
+      fileInput3Ref.current.files = createFileList(selectedFiles[2]);
   };
 
-  // Handle Form Submission via EmailJS
+  /* ---------------------------------------------------------
+     EMAILJS SUBMIT
+  --------------------------------------------------------- */
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    // ------------------------------------------------------------------
-    // PASTE YOUR API KEYS HERE
-    // ------------------------------------------------------------------
-    const SERVICE_ID = 'YOUR_SERVICE_ID';   // Example: 'service_x8s7v2a'
-    const TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // Example: 'template_92d7v2a'
-    const PUBLIC_KEY = 'YOUR_PUBLIC_KEY';   // Example: 'user_Kj2...' or 'vA92...'
-    // ------------------------------------------------------------------
+    const SERVICE_ID = "service_bwvsmh2";
+    const TEMPLATE_ID = "template_wnvkyo3";
+    const PUBLIC_KEY = "R8kPJcOdTEon5BjkC";
 
-    // --- STEP 2: UNCOMMENT THIS BLOCK LOCALLY TO ENABLE EMAIL SENDING ---
-    /*
-    emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form.current, PUBLIC_KEY)
-      .then((result) => {
-          console.log("Email sent successfully:", result.text);
-          setIsSubmitting(false);
-          setSubmitStatus('success');
-          
-          // Reset form
-          setFormData({ user_name: '', user_phone: '', message: '' });
-          setFiles([]);
-          
-          // Clear success message after 5 seconds
-          setTimeout(() => setSubmitStatus(null), 5000);
-      }, (error) => {
-          console.error("Email failed:", error.text);
-          setIsSubmitting(false);
-          alert("Failed to send message. Please check your internet connection and API keys.");
+    emailjs
+      .sendForm(SERVICE_ID, TEMPLATE_ID, form.current, PUBLIC_KEY)
+      .then(() => {
+        setIsSubmitting(false);
+        setSubmitStatus("success");
+
+        // Reset text inputs
+        setFormData({
+          user_name: "",
+          user_phone: "",
+          message: "",
+        });
+
+        // Reset UI previews
+        setFileNames([]);
+
+        // Clear hidden EmailJS file inputs
+        if (fileInput1Ref.current) fileInput1Ref.current.value = "";
+        if (fileInput2Ref.current) fileInput2Ref.current.value = "";
+        if (fileInput3Ref.current) fileInput3Ref.current.value = "";
+
+        setTimeout(() => setSubmitStatus(null), 4000);
+      })
+      .catch((error) => {
+        console.error("Email failed:", error);
+        setIsSubmitting(false);
+        alert("Email send failed. Double check EmailJS settings.");
       });
-    */
-
-    // --- REMOVE THIS SIMULATION BLOCK WHEN USING REAL EMAILS ---
-    console.log("Simulating EmailJS send...", formData);
-    setTimeout(() => {
-       setIsSubmitting(false);
-       setSubmitStatus('success');
-       setFormData({ user_name: '', user_phone: '', message: '' });
-       setFiles([]);
-       setTimeout(() => setSubmitStatus(null), 5000);
-    }, 2000);
-    // ----------------------------------------------------------
   };
 
   return (
     <div className="min-h-screen bg-[#120516] text-white font-sans selection:bg-[#e87ea1] selection:text-[#120516]">
-      
-      {/* Navigation */}
-      <nav 
+
+      {/* =========================================================
+         NAVIGATION
+      ========================================================= */}
+      <nav
         className={`fixed w-full z-50 transition-all duration-300 ${
-          scrolled ? 'bg-[#120516]/95 backdrop-blur-md border-b border-[#e87ea1]/20 py-4' : 'bg-transparent py-6'
+          scrolled
+            ? "bg-[#120516]/95 backdrop-blur-md border-b border-[#e87ea1]/20 py-4"
+            : "bg-transparent py-6"
         }`}
       >
         <div className="container mx-auto px-6 flex justify-between items-center">
-          {/* Logo Text */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollToSection('hero')}>
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => scrollToSection("hero")}
+          >
             <Crown className="w-8 h-8 text-[#e87ea1]" />
             <div className="text-2xl font-serif font-bold tracking-wider">
               HARDEN<span className="text-[#e87ea1]">MADE</span>
             </div>
           </div>
 
-          {/* Desktop Menu */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            {['Services', 'About', 'Gallery', 'Contact'].map((item) => (
-              <button 
+            {["Services", "About", "Gallery", "Contact"].map((item) => (
+              <button
                 key={item}
                 onClick={() => scrollToSection(item.toLowerCase())}
                 className="text-sm uppercase tracking-widest hover:text-[#e87ea1] transition-colors"
@@ -133,25 +173,25 @@ export default function App() {
                 {item}
               </button>
             ))}
-            <button 
-              onClick={() => scrollToSection('contact')}
+            <button
+              onClick={() => scrollToSection("contact")}
               className="px-6 py-2 border border-[#e87ea1] text-[#e87ea1] hover:bg-[#e87ea1] hover:text-[#120516] rounded-full transition-all duration-300 uppercase text-xs font-bold tracking-widest"
             >
               Book Now
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Button */}
           <button className="md:hidden text-[#e87ea1]" onClick={toggleMenu}>
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* Mobile Drawer */}
         {isMenuOpen && (
           <div className="md:hidden absolute top-full left-0 w-full bg-[#1e0b24] border-b border-[#e87ea1]/20 py-6 px-6 flex flex-col gap-4 shadow-2xl">
-            {['Services', 'About', 'Gallery', 'Contact'].map((item) => (
-              <button 
+            {["Services", "About", "Gallery", "Contact"].map((item) => (
+              <button
                 key={item}
                 onClick={() => scrollToSection(item.toLowerCase())}
                 className="text-left text-lg font-serif hover:text-[#e87ea1]"
@@ -159,8 +199,8 @@ export default function App() {
                 {item}
               </button>
             ))}
-            <button 
-              onClick={() => scrollToSection('contact')}
+            <button
+              onClick={() => scrollToSection("contact")}
               className="mt-2 w-full py-3 bg-[#e87ea1] text-[#120516] font-bold rounded"
             >
               BOOK NOW
@@ -169,40 +209,52 @@ export default function App() {
         )}
       </nav>
 
-      {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-        {/* Abstract Background Elements */}
+      {/* =========================================================
+         HERO
+      ========================================================= */}
+      <section
+        id="hero"
+        className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden"
+      >
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#e87ea1] rounded-full mix-blend-screen filter blur-[128px] opacity-10 animate-pulse"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[128px] opacity-10"></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#e87ea1] rounded-full filter blur-[128px] opacity-10 animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600 rounded-full filter blur-[128px] opacity-10"></div>
         </div>
 
         <div className="container mx-auto px-6 relative z-10 text-center">
-          
-          {/* Logo Placeholder */}
           <div className="mx-auto w-32 h-32 md:w-48 md:h-48 mb-8 relative flex items-center justify-center">
             <div className="absolute inset-0 border border-[#e87ea1]/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
-            <Crown className="w-20 h-20 md:w-32 md:h-32 text-[#e87ea1] drop-shadow-[0_0_15px_rgba(232,126,161,0.5)]" />
+            <Crown className="w-20 h-20 md:w-32 md:h-32 text-[#e87ea1]" />
           </div>
 
           <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
-            Excellence <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e87ea1] to-white">Delivered</span>
+            Excellence{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e87ea1] to-white">
+              Delivered
+            </span>
           </h1>
+
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-            Experience a royal standard of clean. Professional residential and commercial cleaning services tailored to your lifestyle.
+            Experience a royal standard of clean. Professional residential and
+            commercial cleaning services tailored to your lifestyle.
           </p>
-          
+
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-            <button 
-              onClick={() => scrollToSection('contact')}
-              className="group relative px-8 py-4 bg-[#e87ea1] text-[#120516] font-bold tracking-widest uppercase overflow-hidden rounded-sm hover:shadow-[0_0_20px_rgba(232,126,161,0.4)] transition-all duration-300"
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="group relative px-8 py-4 bg-[#e87ea1] text-[#120516] font-bold tracking-widest uppercase rounded-sm hover:shadow-[0_0_20px_rgba(232,126,161,0.4)] transition-all duration-300"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Get a Quote <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                Get a Quote{" "}
+                <ArrowRight
+                  size={16}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
               </span>
             </button>
-            <button 
-              onClick={() => scrollToSection('services')}
+
+            <button
+              onClick={() => scrollToSection("services")}
               className="px-8 py-4 border border-white/20 hover:bg-white/5 font-bold tracking-widest uppercase rounded-sm transition-all duration-300"
             >
               View Services
@@ -211,11 +263,15 @@ export default function App() {
         </div>
       </section>
 
-      {/* Services Section */}
+      {/* =========================================================
+         SERVICES
+      ========================================================= */}
       <section id="services" className="py-24 bg-[#180a1e]">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">What We Do</h2>
+            <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+              What We Do
+            </h2>
             <h3 className="text-4xl font-serif font-bold">Our Royal Services</h3>
             <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
           </div>
@@ -225,24 +281,25 @@ export default function App() {
               {
                 icon: <Home size={40} />,
                 title: "Residential Cleaning",
-                desc: "Keep your castle pristine with our deep cleaning, standard maintenance, and organizational services tailored for homes."
+                desc: "Keep your castle pristine with deep cleaning, maintenance, and organizational services.",
               },
               {
                 icon: <Building size={40} />,
                 title: "Commercial Spaces",
-                desc: "Impress your clients with a spotless office. We handle desks, common areas, restrooms, and floors with executive care."
+                desc: "Impress clients with spotless offices, common areas, restrooms, and more.",
               },
               {
                 icon: <Truck size={40} />,
                 title: "Move-In / Move-Out",
-                desc: "Moving is stressful enough. Let us handle the cleaning to ensure you get your deposit back or walk into a fresh start."
-              }
+                desc: "Walk into a fresh start — or get your deposit back — with full service deep cleaning.",
+              },
             ].map((service, idx) => (
-              <div key={idx} className="group p-8 border border-[#e87ea1]/10 bg-[#1e0b24] hover:bg-[#250d2c] hover:border-[#e87ea1]/40 transition-all duration-300 rounded-xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-0 bg-[#e87ea1] group-hover:h-full transition-all duration-500"></div>
-                <div className="text-[#e87ea1] mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                  {service.icon}
-                </div>
+              <div
+                key={idx}
+                className="group p-8 border border-[#e87ea1]/10 bg-[#1e0b24] hover:bg-[#250d2c] hover:border-[#e87ea1]/40 transition-all duration-300 rounded-xl relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-1 bg-[#e87ea1] h-0 group-hover:h-full transition-all duration-500"></div>
+                <div className="text-[#e87ea1] mb-6">{service.icon}</div>
                 <h4 className="text-2xl font-serif mb-4">{service.title}</h4>
                 <p className="text-gray-400 leading-relaxed">{service.desc}</p>
               </div>
@@ -251,41 +308,47 @@ export default function App() {
         </div>
       </section>
 
-      {/* Why Us Section */}
+      {/* =========================================================
+         ABOUT
+      ========================================================= */}
       <section id="about" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[#120516]">
-           {/* Subtle pattern overlay could go here */}
-        </div>
-        
+        <div className="absolute inset-0 bg-[#120516]"></div>
+
         <div className="container mx-auto px-6 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2">
               <div className="relative">
                 <div className="absolute -top-10 -left-10 w-20 h-20 border-t-2 border-l-2 border-[#e87ea1]"></div>
+
                 <div className="bg-[#1e0b24] p-10 rounded-lg border border-white/5 shadow-2xl">
                   <Sparkles className="text-[#e87ea1] w-12 h-12 mb-6" />
                   <h3 className="text-3xl font-serif mb-6 leading-snug">
                     "We believe that a clean environment creates a clear mind."
                   </h3>
-                  <p className="text-gray-400 italic">- The Harden Made Team</p>
+                  <p className="text-gray-400 italic">– The Harden Made Team</p>
                 </div>
+
                 <div className="absolute -bottom-10 -right-10 w-20 h-20 border-b-2 border-r-2 border-[#e87ea1]"></div>
               </div>
             </div>
 
             <div className="lg:w-1/2">
-              <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">Why Choose Us</h2>
-              <h3 className="text-4xl font-serif font-bold mb-8">The Harden Made Standard</h3>
+              <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+                Why Choose Us
+              </h2>
+              <h3 className="text-4xl font-serif font-bold mb-8">
+                The Harden Made Standard
+              </h3>
               <p className="text-gray-300 mb-8 leading-relaxed">
-                We are not just cleaners; we are caretakers of your space. Our team is dedicated to delivering excellence in every corner, crevice, and surface.
+                We don’t just clean — we elevate the environment around you.
               </p>
 
               <div className="space-y-4">
                 {[
                   "Professional & Background-Checked Staff",
-                  "Eco-Friendly Cleaning Products Available",
+                  "Eco-Friendly Products Available",
                   "100% Satisfaction Guarantee",
-                  "Customized Cleaning Plans"
+                  "Customized Cleaning Plans",
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#e87ea1]/10 flex items-center justify-center text-[#e87ea1]">
@@ -300,22 +363,30 @@ export default function App() {
         </div>
       </section>
 
-      {/* Gallery Section */}
+      {/* =========================================================
+         GALLERY
+      ========================================================= */}
       <section id="gallery" className="py-24 bg-[#1e0b24] border-t border-[#e87ea1]/10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">Our Work</h2>
+            <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+              Our Work
+            </h2>
             <h3 className="text-4xl font-serif font-bold">See the Difference</h3>
             <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="group relative aspect-[4/3] bg-[#120516] rounded-xl overflow-hidden border border-[#e87ea1]/20 hover:border-[#e87ea1] transition-all duration-300">
-                {/* Placeholder Content - Replace with <img src="your-image.jpg" /> */}
+              <div
+                key={item}
+                className="group relative aspect-[4/3] bg-[#120516] rounded-xl overflow-hidden border border-[#e87ea1]/20 hover:border-[#e87ea1] transition-all duration-300"
+              >
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                   <ImageIcon className="w-12 h-12 text-[#e87ea1] mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                  <p className="text-gray-500 text-sm group-hover:text-[#e87ea1] transition-colors">Add Project Image {item}</p>
+                  <p className="text-gray-500 text-sm group-hover:text-[#e87ea1] transition-colors">
+                    Add Project Image {item}
+                  </p>
                 </div>
               </div>
             ))}
@@ -323,145 +394,217 @@ export default function App() {
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* =========================================================
+         CONTACT
+      ========================================================= */}
       <section id="contact" className="py-24 bg-[#180a1e] border-t border-[#e87ea1]/20">
         <div className="container mx-auto px-6 text-center">
+
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-serif font-bold mb-6">Ready for a fresh start?</h2>
+            <h2 className="text-4xl font-serif font-bold mb-6">
+              Ready for a fresh start?
+            </h2>
             <p className="text-xl text-gray-400 mb-12">
               Reach out today for a free consultation and quote.
             </p>
 
+            {/* Contact Info */}
             <div className="grid md:grid-cols-3 gap-8 mb-12">
-              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5 flex flex-col items-center hover:border-[#e87ea1]/50 transition-colors">
-                <Phone className="w-8 h-8 text-[#e87ea1] mb-4" />
+              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
+                <Phone className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Call Us</h4>
                 <p className="text-gray-400">(555) 123-4567</p>
               </div>
-              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5 flex flex-col items-center hover:border-[#e87ea1]/50 transition-colors">
-                <Mail className="w-8 h-8 text-[#e87ea1] mb-4" />
+
+              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
+                <Mail className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Email Us</h4>
                 <p className="text-gray-400">info@hardenmade.com</p>
               </div>
-              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5 flex flex-col items-center hover:border-[#e87ea1]/50 transition-colors">
-                <MapPin className="w-8 h-8 text-[#e87ea1] mb-4" />
+
+              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
+                <MapPin className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Service Area</h4>
                 <p className="text-gray-400">Phoenix Metropolitan Area</p>
               </div>
             </div>
 
-            <form ref={form} onSubmit={handleSubmit} className="bg-[#1e0b24] p-8 rounded-xl border border-[#e87ea1]/10 text-left max-w-2xl mx-auto relative overflow-hidden">
-              {submitStatus === 'success' && (
-                <div className="absolute inset-0 bg-[#1e0b24]/95 flex flex-col items-center justify-center z-20 animate-in fade-in duration-300">
+            {/* FORM */}
+            <form
+              ref={form}
+              onSubmit={handleSubmit}
+              className="bg-[#1e0b24] p-8 rounded-xl border border-[#e87ea1]/10 text-left max-w-2xl mx-auto relative overflow-hidden"
+            >
+              {/* SUCCESS OVERLAY */}
+              {submitStatus === "success" && (
+                <div className="absolute inset-0 bg-[#1e0b24]/95 flex flex-col items-center justify-center z-20">
                   <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
                     <Check className="w-8 h-8 text-green-500" />
                   </div>
-                  <h3 className="text-2xl font-serif font-bold mb-2">Message Sent!</h3>
-                  <p className="text-gray-400">We'll get back to you shortly.</p>
+                  <h3 className="text-2xl font-serif font-bold mb-2">
+                    Message Sent!
+                  </h3>
+                  <p className="text-gray-400">
+                    Your request has been delivered to our team.
+                  </p>
                 </div>
               )}
 
+              {/* NAME + PHONE */}
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Name</label>
-                  <input 
-                    type="text" 
-                    name="user_name" 
+                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="user_name"
+                    required
                     value={formData.user_name}
                     onChange={handleInputChange}
-                    required
-                    className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1] focus:outline-none transition-colors" 
-                    placeholder="John Doe" 
+                    className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1]"
+                    placeholder="John Doe"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Phone</label>
-                  <input 
-                    type="tel" 
+                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
                     name="user_phone"
+                    required
                     value={formData.user_phone}
                     onChange={handleInputChange}
-                    required
-                    className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1] focus:outline-none transition-colors" 
-                    placeholder="(555) 000-0000" 
+                    className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1]"
+                    placeholder="(555) 000-0000"
                   />
                 </div>
               </div>
+
+              {/* MESSAGE */}
               <div className="mb-6">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Message</label>
-                <textarea 
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                  Message
+                </label>
+                <textarea
                   name="message"
+                  required
                   value={formData.message}
                   onChange={handleInputChange}
-                  required
-                  className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1] focus:outline-none transition-colors h-32" 
+                  className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1] h-32"
                   placeholder="Tell us about your cleaning needs..."
                 ></textarea>
               </div>
 
-              {/* Image Upload Field */}
+              {/* =======================================================
+                 ONE UPLOAD BOX → MULTIPLE EMAILJS FILE ATTACHMENTS
+              ======================================================= */}
               <div className="mb-8">
-                 <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Upload Photos (Optional)</label>
-                 <label className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center hover:border-[#e87ea1] hover:bg-[#1e0b24] transition-all cursor-pointer group block relative">
-                    <Upload className="w-8 h-8 text-gray-500 group-hover:text-[#e87ea1] mx-auto mb-2 transition-colors" />
-                    <span className="text-gray-400 text-sm group-hover:text-white transition-colors">
-                      {files.length > 0 ? `${files.length} file(s) selected` : "Click to upload images of your space"}
-                    </span>
-                    {/* IMPORTANT: EmailJS file input needs a name attribute to attach */}
-                    <input 
-                      type="file" 
-                      name="my_file"
-                      className="hidden" 
-                      multiple 
-                      accept="image/*"
-                      onChange={handleFileChange} 
-                    />
-                 </label>
-                 
-                 {/* File Preview List */}
-                 {files.length > 0 && (
-                   <div className="mt-3 space-y-2">
-                     {files.map((file, idx) => (
-                       <div key={idx} className="flex items-center gap-2 text-xs text-gray-400 bg-[#120516] p-2 rounded border border-gray-800">
-                         <ImageIcon size={14} />
-                         <span className="truncate">{file.name}</span>
-                       </div>
-                     ))}
-                   </div>
-                 )}
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-4">
+                  Upload Photos (Optional)
+                </label>
+
+                {/* ONE Visual Upload Box */}
+                <label className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center cursor-pointer group block">
+                  <Upload className="w-8 h-8 text-gray-500 group-hover:text-[#e87ea1] mx-auto mb-2" />
+                  <span className="text-gray-400 text-sm group-hover:text-white">
+                    {fileNames.length > 0
+                      ? `${fileNames.length} file(s) selected`
+                      : "Click to upload up to 3 images"}
+                  </span>
+
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleUnifiedFileUpload}
+                  />
+                </label>
+
+                {/* Name Previews */}
+                {fileNames.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {fileNames.map((name, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 text-xs text-gray-400 bg-[#120516] p-2 rounded border border-gray-800"
+                      >
+                        <ImageIcon size={14} /> {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Hidden EmailJS inputs */}
+                <input
+                  type="file"
+                  name="my_file1"
+                  ref={fileInput1Ref}
+                  className="hidden"
+                />
+                <input
+                  type="file"
+                  name="my_file2"
+                  ref={fileInput2Ref}
+                  className="hidden"
+                />
+                <input
+                  type="file"
+                  name="my_file3"
+                  ref={fileInput3Ref}
+                  className="hidden"
+                />
               </div>
 
-              <button 
-                type="submit" 
+              {/* SUBMIT BUTTON */}
+              <button
+                type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-[#e87ea1] text-[#120516] font-bold uppercase tracking-widest hover:bg-white transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#e87ea1] text-[#120516] font-bold uppercase tracking-widest rounded flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="animate-spin" size={20} /> Sending...
+                    <Loader2 className="animate-spin" size={20} />
+                    Sending...
                   </>
-                ) : "Send Request"}
+                ) : (
+                  "Send Request"
+                )}
               </button>
             </form>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* =========================================================
+         FOOTER
+      ========================================================= */}
       <footer className="py-12 bg-black text-center text-gray-600 text-sm border-t border-[#1e0b24]">
         <div className="container mx-auto px-6 flex flex-col items-center">
           <p className="mb-4">&copy; 2025 Harden Made LLC. All Rights Reserved.</p>
-          
-          {/* Mogul Design Agency Credit */}
+
           <div className="flex items-center gap-2 group cursor-pointer transition-all duration-300 hover:text-white">
             <span>Created with</span>
-            <Heart size={14} className="text-red-500 fill-red-500 animate-pulse" />
+            <Heart className="text-red-500 fill-red-500 animate-pulse" size={14} />
             <span>by</span>
-            
-            <a href="https://moguldesignagency.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-[#1e0b24] px-4 py-2 rounded-full border border-[#e87ea1]/20 group-hover:border-[#e87ea1] group-hover:shadow-[0_0_15px_rgba(232,126,161,0.3)] transition-all duration-300">
-               {/* Updated with user logo path */}
-               <img src="/Lightbulb.png" alt="Mogul Design Agency" className="w-4 h-4 object-contain group-hover:rotate-[360deg] transition-transform duration-700 ease-in-out" />
-               <span className="font-bold uppercase tracking-wider text-xs text-[#e87ea1]">Mogul Design Agency</span>
+
+            <a
+              href="https://moguldesignagency.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-[#1e0b24] px-4 py-2 rounded-full border border-[#e87ea1]/20 group-hover:border-[#e87ea1] group-hover:shadow-[0_0_15px_rgba(232,126,161,0.3)] transition-all duration-300"
+            >
+              <img
+                src="/Lightbulb.png"
+                alt="Mogul Design Agency"
+                className="w-4 h-4 object-contain group-hover:rotate-[360deg] transition-transform duration-700 ease-in-out"
+              />
+              <span className="font-bold uppercase tracking-wider text-xs text-[#e87ea1]">
+                Mogul Design Agency
+              </span>
             </a>
           </div>
         </div>
