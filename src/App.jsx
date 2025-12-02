@@ -376,21 +376,25 @@ export default function App() {
             <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="group relative aspect-[4/3] bg-[#120516] rounded-xl overflow-hidden border border-[#e87ea1]/20 hover:border-[#e87ea1] transition-all duration-300"
-              >
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                  <ImageIcon className="w-12 h-12 text-[#e87ea1] mb-3 opacity-50 group-hover:opacity-100 transition-opacity" />
-                  <p className="text-gray-500 text-sm group-hover:text-[#e87ea1] transition-colors">
-                    Add Project Image {item}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+<div className="grid md:grid-cols-3 gap-6">
+  {[
+    "/clean1.jpg",
+    "/kitchen.jpg",
+    "/floor.png",
+  ].map((src, i) => (
+    <div
+      key={i}
+      className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-[#e87ea1]/20 hover:border-[#e87ea1] transition-all duration-300"
+    >
+      <img
+        src={src}
+        alt={`Gallery ${i + 1}`}
+        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
+  ))}
+</div>
         </div>
       </section>
 
