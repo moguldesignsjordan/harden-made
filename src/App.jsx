@@ -235,8 +235,7 @@ export default function App() {
           </h1>
 
           <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-            Experience a royal standard of clean. Professional residential and
-            commercial cleaning services tailored to your lifestyle.
+         "Experience an exceptional standard of clean. Professional cleaning services tailored to your lifestyle"
           </p>
 
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
@@ -272,7 +271,7 @@ export default function App() {
             <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
               What We Do
             </h2>
-            <h3 className="text-4xl font-serif font-bold">Our Royal Services</h3>
+            <h3 className="text-4xl font-serif font-bold">Exceed Expectations</h3>
             <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
           </div>
 
