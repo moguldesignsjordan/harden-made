@@ -307,14 +307,14 @@ export default function App() {
             desc: "Top-to-bottom deep cleaning to prepare homes for new occupants or ensure a flawless move-out.",
           },
           {
-            icon: <Home size={40} />,
-            title: "New Construction & Custom Build Cleanouts",
-            desc: "Post-construction cleaning that removes dust, debris, and residue so your new build is move-in ready.",
-          },
-          {
             icon: <Building size={40} />,
             title: "Commercial Cleaning",
             desc: "Professional cleaning for offices and commercial spaces, including restrooms, common areas, and workspaces.",
+          },
+               {
+            icon: <Home size={40} />,
+            title: "Custom Build Your Own ",
+            desc: "Build your own custom cleaning package.",
           },
         ].map((service, idx) => (
           <div
@@ -382,7 +382,7 @@ export default function App() {
                 {[
                   "Professional & Background-Checked Staff",
                   "Eco-Friendly Products Available",
-                  "",
+                  "100% Satisfaction Guarantee",
                   "Customized Cleaning Plans",
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4">
