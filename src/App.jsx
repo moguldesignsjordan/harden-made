@@ -1,9 +1,7 @@
-// FULL APP.JSX — SINGLE UPLOAD BOX → MULTIPLE FILE ATTACHMENTS
-// Based on original upload: :contentReference[oaicite:0]{index=0}
+// FULL APP.JSX — UPDATED WITH CUSTOM CROWN LOGO (/222.png)
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Crown,
   Star,
   Home,
   Building,
@@ -156,7 +154,12 @@ export default function App() {
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => scrollToSection("hero")}
           >
-            <Crown className="w-8 h-8 text-[#e87ea1]" />
+            {/* UPDATED: Custom Logo Image */}
+            <img 
+              src="/222.png" 
+              alt="Harden Made Crown" 
+              className="w-11 h-11 object-contain" 
+            />
             <div className="text-2xl font-serif font-bold tracking-wider">
               HARDEN<span className="text-[#e87ea1]">MADE</span>
             </div>
@@ -224,7 +227,13 @@ export default function App() {
         <div className="container mx-auto px-6 relative z-10 text-center">
           <div className="mx-auto w-32 h-32 md:w-48 md:h-48 mb-8 relative flex items-center justify-center">
             <div className="absolute inset-0 border border-[#e87ea1]/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
-            <Crown className="w-20 h-20 md:w-32 md:h-32 text-[#e87ea1]" />
+            
+            {/* UPDATED: Custom Logo Image (Larger) */}
+            <img 
+              src="/222.png" 
+              alt="Harden Made Crown" 
+              className="w-60 h-60 md:w-60 md:h-60 object-contain" 
+            />
           </div>
 
           <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
@@ -262,50 +271,77 @@ export default function App() {
         </div>
       </section>
 
-      {/* =========================================================
-         SERVICES
-      ========================================================= */}
-      <section id="services" className="py-24 bg-[#180a1e]">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
-              What We Do
-            </h2>
-            <h3 className="text-4xl font-serif font-bold">Exceed Expectations</h3>
-            <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
-          </div>
+{/* =========================================================
+   SERVICES
+========================================================= */}
+<section id="services" className="py-24 bg-[#180a1e]">
+  <div className="container mx-auto px-6">
+    {/* Section Header */}
+    <div className="text-center mb-16">
+      <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+        What We Do
+      </h2>
+      <h3 className="text-4xl font-serif font-bold text-white">
+        Exceed Expectations
+      </h3>
+      <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
+    </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Home size={40} />,
-                title: "Residential Cleaning",
-                desc: "Keep your castle pristine with deep cleaning, maintenance, and organizational services.",
-              },
-              {
-                icon: <Building size={40} />,
-                title: "Commercial Spaces",
-                desc: "Impress clients with spotless offices, common areas, restrooms, and more.",
-              },
-              {
-                icon: <Truck size={40} />,
-                title: "Move-In / Move-Out",
-                desc: "Walk into a fresh start — or get your deposit back — with full service deep cleaning.",
-              },
-            ].map((service, idx) => (
-              <div
-                key={idx}
-                className="group p-8 border border-[#e87ea1]/10 bg-[#1e0b24] hover:bg-[#250d2c] hover:border-[#e87ea1]/40 transition-all duration-300 rounded-xl relative overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 w-1 bg-[#e87ea1] h-0 group-hover:h-full transition-all duration-500"></div>
-                <div className="text-[#e87ea1] mb-6">{service.icon}</div>
-                <h4 className="text-2xl font-serif mb-4">{service.title}</h4>
-                <p className="text-gray-400 leading-relaxed">{service.desc}</p>
-              </div>
-            ))}
+    {/* CENTERED GRID WRAPPER */}
+    <div className="flex justify-center">
+      <div className="grid md:grid-cols-3 gap-8 max-w-6xl w-full">
+        {[
+          {
+            icon: <Home size={40} />,
+            title: "Turnover / Vacation Rental Cleaning",
+            desc: "Detailed turnover cleaning between guests to ensure your rental is spotless, refreshed, and guest-ready.",
+          },
+          {
+            icon: <Home size={40} />,
+            title: "Residential Cleaning",
+            desc: "Routine or deep home cleaning designed to keep your space fresh, organized, and beautifully maintained.",
+          },
+          {
+            icon: <Truck size={40} />,
+            title: "Move-In / Move-Out Deep Cleaning",
+            desc: "Top-to-bottom deep cleaning to prepare homes for new occupants or ensure a flawless move-out.",
+          },
+          {
+            icon: <Home size={40} />,
+            title: "New Construction & Custom Build Cleanouts",
+            desc: "Post-construction cleaning that removes dust, debris, and residue so your new build is move-in ready.",
+          },
+          {
+            icon: <Building size={40} />,
+            title: "Commercial Cleaning",
+            desc: "Professional cleaning for offices and commercial spaces, including restrooms, common areas, and workspaces.",
+          },
+        ].map((service, idx) => (
+          <div
+            key={idx}
+            className="group p-8 border border-[#e87ea1]/10 bg-[#1e0b24]
+                       hover:bg-[#250d2c] hover:border-[#e87ea1]/40
+                       transition-all duration-300 rounded-xl relative overflow-hidden"
+          >
+            {/* Accent Bar */}
+            <div className="absolute top-0 left-0 w-1 bg-[#e87ea1] h-0 group-hover:h-full transition-all duration-500"></div>
+
+            {/* Icon */}
+            <div className="text-[#e87ea1] mb-6">{service.icon}</div>
+
+            {/* Content */}
+            <h4 className="text-2xl font-serif mb-4 text-white">
+              {service.title}
+            </h4>
+            <p className="text-gray-400 leading-relaxed">
+              {service.desc}
+            </p>
           </div>
-        </div>
-      </section>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* =========================================================
          ABOUT
@@ -346,7 +382,7 @@ export default function App() {
                 {[
                   "Professional & Background-Checked Staff",
                   "Eco-Friendly Products Available",
-                  "100% Satisfaction Guarantee",
+                  "",
                   "Customized Cleaning Plans",
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4">
@@ -416,7 +452,7 @@ export default function App() {
               <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
                 <Phone className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Call Us</h4>
-                <p className="text-gray-400">(555) 123-4567</p>
+                <p className="text-gray-400">(602) 721-1009</p>
               </div>
 
               <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
@@ -428,7 +464,7 @@ export default function App() {
               <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
                 <MapPin className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Service Area</h4>
-                <p className="text-gray-400">Phoenix Metropolitan Area</p>
+                <p className="text-gray-400">East Valley</p>
               </div>
             </div>
 
@@ -587,7 +623,7 @@ export default function App() {
       ========================================================= */}
       <footer className="py-12 bg-black text-center text-gray-600 text-sm border-t border-[#1e0b24]">
         <div className="container mx-auto px-6 flex flex-col items-center">
-          <p className="mb-4">&copy; 2025 Harden Made LLC. All Rights Reserved.</p>
+          <p className="mb-4">&copy; 2026 Harden Made LLC. All Rights Reserved.</p>
 
           <div className="flex items-center gap-2 group cursor-pointer transition-all duration-300 hover:text-white">
             <span>Created with</span>
