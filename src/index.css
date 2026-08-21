@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* -----------------------------------------------------------
+   Theme palette. Values are raw RGB channels so Tailwind can
+   apply opacity modifiers to them (see tailwind.config.js).
+   :root is light; .dark on <html> swaps in the original
+   deep-plum palette.
+----------------------------------------------------------- */
+:root {
+  --base: 253 247 249;
+  --surface: 255 255 255;
+  --elevated: 250 241 244;
+  --hairline: 236 217 224;
+  --accent: 192 77 117;
+  --accent-fg: 255 255 255;
+  --ink: 31 10 38;
+  --ink-muted: 107 91 102;
+  --ink-subtle: 141 123 134;
+  color-scheme: light;
+}
+
+.dark {
+  --base: 18 5 22;
+  --surface: 24 10 30;
+  --elevated: 30 11 36;
+  --hairline: 37 13 44;
+  --accent: 232 126 161;
+  --accent-fg: 18 5 22;
+  --ink: 255 255 255;
+  --ink-muted: 209 213 219;
+  --ink-subtle: 107 114 128;
+  color-scheme: dark;
+}
+
+/* Repaint the page chrome, not just the app, when the theme flips. */
+html {
+  background-color: rgb(var(--base));
+}
+
+/* Ease the swap, but never fight a user who asked for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  body,
+  body * {
+    transition: background-color 200ms ease, border-color 200ms ease,
+      color 200ms ease;
+  }
+}

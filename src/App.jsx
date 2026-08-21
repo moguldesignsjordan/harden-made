@@ -1,4 +1,4 @@
-// FULL APP.JSX — UPDATED WITH CUSTOM CROWN LOGO (/222.png)
+// FULL APP.JSX: UPDATED WITH CUSTOM CROWN LOGO (/222.png)
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -18,6 +18,8 @@ import {
   Image as ImageIcon,
   Heart,
   Loader2,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import emailjs from "@emailjs/browser";
@@ -32,7 +34,62 @@ function createFileList(file) {
   return dataTransfer.files;
 }
 
+/* ---------------------------------------------------------
+   Theme: persists the visitor's choice, and falls back to
+   whatever their OS is set to the first time they land here.
+--------------------------------------------------------- */
+function getInitialTheme() {
+  if (typeof window === "undefined") return "dark";
+  try {
+    const saved = window.localStorage.getItem("hm-theme");
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    // Private browsing can throw on access; fall through to the OS setting.
+  }
+  return window.matchMedia("(prefers-color-scheme: light)").matches
+    ? "light"
+    : "dark";
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    try {
+      window.localStorage.setItem("hm-theme", theme);
+    } catch {
+      // Not being able to remember the choice is not worth breaking over.
+    }
+  }, [theme]);
+
+  const toggleTheme = () =>
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  return { theme, toggleTheme };
+}
+
+/* ---------------------------------------------------------
+   Theme toggle button
+--------------------------------------------------------- */
+function ThemeToggle({ theme, onToggle }) {
+  const isDark = theme === "dark";
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={isDark}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className="p-2 rounded-full border border-hairline text-accent hover:bg-accent hover:text-accent-fg hover:border-accent transition-all duration-300"
+    >
+      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+  );
+}
+
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -137,7 +194,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#120516] text-white font-sans selection:bg-[#e87ea1] selection:text-[#120516]">
+    <div className="min-h-screen bg-base text-ink font-sans selection:bg-accent selection:text-accent-fg">
 
       {/* =========================================================
          NAVIGATION
@@ -145,7 +202,7 @@ export default function App() {
       <nav
         className={`fixed w-full z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-[#120516]/95 backdrop-blur-md border-b border-[#e87ea1]/20 py-4"
+            ? "bg-base/95 backdrop-blur-md border-b border-accent/20 py-4"
             : "bg-transparent py-6"
         }`}
       >
@@ -161,7 +218,7 @@ export default function App() {
               className="w-11 h-11 object-contain" 
             />
             <div className="text-2xl font-serif font-bold tracking-wider">
-              HARDEN<span className="text-[#e87ea1]">MADE</span>
+              HARDEN<span className="text-accent">MADE</span>
             </div>
           </div>
 
@@ -171,40 +228,44 @@ export default function App() {
               <button
                 key={item}
                 onClick={() => scrollToSection(item.toLowerCase())}
-                className="text-sm uppercase tracking-widest hover:text-[#e87ea1] transition-colors"
+                className="text-sm uppercase tracking-widest hover:text-accent transition-colors"
               >
                 {item}
               </button>
             ))}
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
             <button
               onClick={() => scrollToSection("contact")}
-              className="px-6 py-2 border border-[#e87ea1] text-[#e87ea1] hover:bg-[#e87ea1] hover:text-[#120516] rounded-full transition-all duration-300 uppercase text-xs font-bold tracking-widest"
+              className="px-6 py-2 border border-accent text-accent hover:bg-accent hover:text-accent-fg rounded-full transition-all duration-300 uppercase text-xs font-bold tracking-widest"
             >
               Book Now
             </button>
           </div>
 
           {/* Mobile Button */}
-          <button className="md:hidden text-[#e87ea1]" onClick={toggleMenu}>
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          <button className="text-accent" onClick={toggleMenu}>
             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
+          </div>
         </div>
 
         {/* Mobile Drawer */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-[#1e0b24] border-b border-[#e87ea1]/20 py-6 px-6 flex flex-col gap-4 shadow-2xl">
+          <div className="md:hidden absolute top-full left-0 w-full bg-elevated border-b border-accent/20 py-6 px-6 flex flex-col gap-4 shadow-2xl">
             {["Services", "About", "Gallery", "Contact"].map((item) => (
               <button
                 key={item}
                 onClick={() => scrollToSection(item.toLowerCase())}
-                className="text-left text-lg font-serif hover:text-[#e87ea1]"
+                className="text-left text-lg font-serif hover:text-accent"
               >
                 {item}
               </button>
             ))}
             <button
               onClick={() => scrollToSection("contact")}
-              className="mt-2 w-full py-3 bg-[#e87ea1] text-[#120516] font-bold rounded"
+              className="mt-2 w-full py-3 bg-accent text-accent-fg font-bold rounded"
             >
               BOOK NOW
             </button>
@@ -219,14 +280,24 @@ export default function App() {
         id="hero"
         className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden"
       >
+        {/* Background photo */}
+        <img
+          src="/kitchen-island.jpeg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
+        {/* Readability overlay */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-base/90 via-base/75 to-base"></div>
+
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#e87ea1] rounded-full filter blur-[128px] opacity-10 animate-pulse"></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent rounded-full filter blur-[128px] opacity-10 animate-pulse"></div>
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600 rounded-full filter blur-[128px] opacity-10"></div>
         </div>
 
         <div className="container mx-auto px-6 relative z-10 text-center">
           <div className="mx-auto w-32 h-32 md:w-48 md:h-48 mb-8 relative flex items-center justify-center">
-            <div className="absolute inset-0 border border-[#e87ea1]/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+            <div className="absolute inset-0 border border-accent/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
             
             {/* UPDATED: Custom Logo Image (Larger) */}
             <img 
@@ -238,19 +309,19 @@ export default function App() {
 
           <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
             Excellence{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e87ea1] to-white">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-white">
               Delivered
             </span>
           </h1>
 
-          <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light leading-relaxed">
+          <p className="text-ink-muted text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light leading-relaxed">
          "Experience an exceptional standard of clean. Professional cleaning services tailored to your lifestyle"
           </p>
 
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
             <button
               onClick={() => scrollToSection("contact")}
-              className="group relative px-8 py-4 bg-[#e87ea1] text-[#120516] font-bold tracking-widest uppercase rounded-sm hover:shadow-[0_0_20px_rgba(232,126,161,0.4)] transition-all duration-300"
+              className="group relative px-8 py-4 bg-accent text-accent-fg font-bold tracking-widest uppercase rounded-sm hover:shadow-[0_0_20px_rgba(232,126,161,0.4)] transition-all duration-300"
             >
               <span className="relative z-10 flex items-center gap-2">
                 Get a Quote{" "}
@@ -263,7 +334,7 @@ export default function App() {
 
             <button
               onClick={() => scrollToSection("services")}
-              className="px-8 py-4 border border-white/20 hover:bg-white/5 font-bold tracking-widest uppercase rounded-sm transition-all duration-300"
+              className="px-8 py-4 border border-hairline hover:bg-elevated font-bold tracking-widest uppercase rounded-sm transition-all duration-300"
             >
               View Services
             </button>
@@ -274,17 +345,17 @@ export default function App() {
 {/* =========================================================
    SERVICES
 ========================================================= */}
-<section id="services" className="py-24 bg-[#180a1e]">
+<section id="services" className="py-24 bg-surface">
   <div className="container mx-auto px-6">
     {/* Section Header */}
     <div className="text-center mb-16">
-      <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+      <h2 className="text-accent uppercase tracking-widest text-sm font-bold mb-3">
         What We Do
       </h2>
-      <h3 className="text-4xl font-serif font-bold text-white">
+      <h3 className="text-4xl font-serif font-bold text-ink">
         Exceed Expectations
       </h3>
-      <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
+      <div className="w-24 h-1 bg-accent mx-auto mt-6"></div>
     </div>
 
     {/* CENTERED GRID WRAPPER */}
@@ -319,21 +390,21 @@ export default function App() {
         ].map((service, idx) => (
           <div
             key={idx}
-            className="group p-8 border border-[#e87ea1]/10 bg-[#1e0b24]
-                       hover:bg-[#250d2c] hover:border-[#e87ea1]/40
+            className="group p-8 border border-accent/10 bg-elevated
+                       hover:bg-elevated hover:border-accent/40
                        transition-all duration-300 rounded-xl relative overflow-hidden"
           >
             {/* Accent Bar */}
-            <div className="absolute top-0 left-0 w-1 bg-[#e87ea1] h-0 group-hover:h-full transition-all duration-500"></div>
+            <div className="absolute top-0 left-0 w-1 bg-accent h-0 group-hover:h-full transition-all duration-500"></div>
 
             {/* Icon */}
-            <div className="text-[#e87ea1] mb-6">{service.icon}</div>
+            <div className="text-accent mb-6">{service.icon}</div>
 
             {/* Content */}
-            <h4 className="text-2xl font-serif mb-4 text-white">
+            <h4 className="text-2xl font-serif mb-4 text-ink">
               {service.title}
             </h4>
-            <p className="text-gray-400 leading-relaxed">
+            <p className="text-ink-muted leading-relaxed">
               {service.desc}
             </p>
           </div>
@@ -347,35 +418,35 @@ export default function App() {
          ABOUT
       ========================================================= */}
       <section id="about" className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[#120516]"></div>
+        <div className="absolute inset-0 bg-base"></div>
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2">
               <div className="relative">
-                <div className="absolute -top-10 -left-10 w-20 h-20 border-t-2 border-l-2 border-[#e87ea1]"></div>
+                <div className="absolute -top-10 -left-10 w-20 h-20 border-t-2 border-l-2 border-accent"></div>
 
-                <div className="bg-[#1e0b24] p-10 rounded-lg border border-white/5 shadow-2xl">
-                  <Sparkles className="text-[#e87ea1] w-12 h-12 mb-6" />
+                <div className="bg-elevated p-10 rounded-lg border border-hairline shadow-2xl">
+                  <Sparkles className="text-accent w-12 h-12 mb-6" />
                   <h3 className="text-3xl font-serif mb-6 leading-snug">
                     "We believe that a clean environment creates a clear mind."
                   </h3>
-                  <p className="text-gray-400 italic">– The Harden Made Team</p>
+                  <p className="text-ink-muted italic">– The Harden Made Team</p>
                 </div>
 
-                <div className="absolute -bottom-10 -right-10 w-20 h-20 border-b-2 border-r-2 border-[#e87ea1]"></div>
+                <div className="absolute -bottom-10 -right-10 w-20 h-20 border-b-2 border-r-2 border-accent"></div>
               </div>
             </div>
 
             <div className="lg:w-1/2">
-              <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+              <h2 className="text-accent uppercase tracking-widest text-sm font-bold mb-3">
                 Why Choose Us
               </h2>
               <h3 className="text-4xl font-serif font-bold mb-8">
                 The Harden Made Standard
               </h3>
-              <p className="text-gray-300 mb-8 leading-relaxed">
-                We don’t just clean — we elevate the environment around you.
+              <p className="text-ink-muted mb-8 leading-relaxed">
+                We don’t just clean. We elevate the environment around you.
               </p>
 
               <div className="space-y-4">
@@ -386,7 +457,7 @@ export default function App() {
                   "Customized Cleaning Plans",
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#e87ea1]/10 flex items-center justify-center text-[#e87ea1]">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                       <Check size={16} />
                     </div>
                     <span className="text-lg">{item}</span>
@@ -401,32 +472,33 @@ export default function App() {
       {/* =========================================================
          GALLERY
       ========================================================= */}
-      <section id="gallery" className="py-24 bg-[#1e0b24] border-t border-[#e87ea1]/10">
+      <section id="gallery" className="py-24 bg-elevated border-t border-accent/10">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-[#e87ea1] uppercase tracking-widest text-sm font-bold mb-3">
+            <h2 className="text-accent uppercase tracking-widest text-sm font-bold mb-3">
               Our Work
             </h2>
             <h3 className="text-4xl font-serif font-bold">See the Difference</h3>
-            <div className="w-24 h-1 bg-[#e87ea1] mx-auto mt-6"></div>
+            <div className="w-24 h-1 bg-accent mx-auto mt-6"></div>
           </div>
 
 <div className="grid md:grid-cols-3 gap-6">
   {[
-    "/clean1.jpg",
-    "/kitchen.jpg",
-    "/floor.png",
-  ].map((src, i) => (
+    { src: "/master-bedroom.jpeg", alt: "Master bedroom turnover with fresh linens" },
+    { src: "/guest-bedroom.jpeg", alt: "Guest bedroom reset and detailed" },
+    { src: "/second-bedroom.jpeg", alt: "Second bedroom prepared for the next guest" },
+  ].map(({ src, alt }, i) => (
     <div
       key={i}
-      className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-[#e87ea1]/20 hover:border-[#e87ea1] transition-all duration-300"
+      className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-accent/20 hover:border-accent transition-all duration-300"
     >
       <img
         src={src}
-        alt={`Gallery ${i + 1}`}
+        alt={alt}
+        loading="lazy"
         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-base/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
     </div>
   ))}
 </div>
@@ -436,35 +508,35 @@ export default function App() {
       {/* =========================================================
          CONTACT
       ========================================================= */}
-      <section id="contact" className="py-24 bg-[#180a1e] border-t border-[#e87ea1]/20">
+      <section id="contact" className="py-24 bg-surface border-t border-accent/20">
         <div className="container mx-auto px-6 text-center">
 
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl font-serif font-bold mb-6">
               Ready for a fresh start?
             </h2>
-            <p className="text-xl text-gray-400 mb-12">
+            <p className="text-xl text-ink-muted mb-12">
               Reach out today for a free consultation and quote.
             </p>
 
             {/* Contact Info */}
             <div className="grid md:grid-cols-3 gap-8 mb-12">
-              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
-                <Phone className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
+              <div className="p-6 bg-elevated rounded-lg border border-hairline">
+                <Phone className="w-8 h-8 text-accent mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Call Us</h4>
-                <p className="text-gray-400">(602) 721-1009</p>
+                <p className="text-ink-muted">(602) 721-1009</p>
               </div>
 
-              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
-                <Mail className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
+              <div className="p-6 bg-elevated rounded-lg border border-hairline">
+                <Mail className="w-8 h-8 text-accent mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Email Us</h4>
-                <p className="text-gray-400">info@hardenmade.com</p>
+                <p className="text-ink-muted">info@hardenmade.com</p>
               </div>
 
-              <div className="p-6 bg-[#1e0b24] rounded-lg border border-white/5">
-                <MapPin className="w-8 h-8 text-[#e87ea1] mx-auto mb-4" />
+              <div className="p-6 bg-elevated rounded-lg border border-hairline">
+                <MapPin className="w-8 h-8 text-accent mx-auto mb-4" />
                 <h4 className="font-bold mb-2">Service Area</h4>
-                <p className="text-gray-400">East Valley</p>
+                <p className="text-ink-muted">East Valley</p>
               </div>
             </div>
 
@@ -472,18 +544,18 @@ export default function App() {
             <form
               ref={form}
               onSubmit={handleSubmit}
-              className="bg-[#1e0b24] p-8 rounded-xl border border-[#e87ea1]/10 text-left max-w-2xl mx-auto relative overflow-hidden"
+              className="bg-elevated p-8 rounded-xl border border-accent/10 text-left max-w-2xl mx-auto relative overflow-hidden"
             >
               {/* SUCCESS OVERLAY */}
               {submitStatus === "success" && (
-                <div className="absolute inset-0 bg-[#1e0b24]/95 flex flex-col items-center justify-center z-20">
+                <div className="absolute inset-0 bg-elevated/95 flex flex-col items-center justify-center z-20">
                   <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
                     <Check className="w-8 h-8 text-green-500" />
                   </div>
                   <h3 className="text-2xl font-serif font-bold mb-2">
                     Message Sent!
                   </h3>
-                  <p className="text-gray-400">
+                  <p className="text-ink-muted">
                     Your request has been delivered to our team.
                   </p>
                 </div>
@@ -492,7 +564,7 @@ export default function App() {
               {/* NAME + PHONE */}
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                  <label className="block text-xs uppercase tracking-widest text-ink-subtle mb-2">
                     Name
                   </label>
                   <input
@@ -501,13 +573,13 @@ export default function App() {
                     required
                     value={formData.user_name}
                     onChange={handleInputChange}
-                    className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1]"
+                    className="w-full bg-base border border-gray-700 rounded p-3 text-ink focus:border-accent"
                     placeholder="John Doe"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                  <label className="block text-xs uppercase tracking-widest text-ink-subtle mb-2">
                     Phone
                   </label>
                   <input
@@ -516,7 +588,7 @@ export default function App() {
                     required
                     value={formData.user_phone}
                     onChange={handleInputChange}
-                    className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1]"
+                    className="w-full bg-base border border-gray-700 rounded p-3 text-ink focus:border-accent"
                     placeholder="(555) 000-0000"
                   />
                 </div>
@@ -524,7 +596,7 @@ export default function App() {
 
               {/* MESSAGE */}
               <div className="mb-6">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">
+                <label className="block text-xs uppercase tracking-widest text-ink-subtle mb-2">
                   Message
                 </label>
                 <textarea
@@ -532,7 +604,7 @@ export default function App() {
                   required
                   value={formData.message}
                   onChange={handleInputChange}
-                  className="w-full bg-[#120516] border border-gray-700 rounded p-3 text-white focus:border-[#e87ea1] h-32"
+                  className="w-full bg-base border border-gray-700 rounded p-3 text-ink focus:border-accent h-32"
                   placeholder="Tell us about your cleaning needs..."
                 ></textarea>
               </div>
@@ -541,14 +613,14 @@ export default function App() {
                  ONE UPLOAD BOX → MULTIPLE EMAILJS FILE ATTACHMENTS
               ======================================================= */}
               <div className="mb-8">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-4">
+                <label className="block text-xs uppercase tracking-widest text-ink-subtle mb-4">
                   Upload Photos (Optional)
                 </label>
 
                 {/* ONE Visual Upload Box */}
                 <label className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center cursor-pointer group block">
-                  <Upload className="w-8 h-8 text-gray-500 group-hover:text-[#e87ea1] mx-auto mb-2" />
-                  <span className="text-gray-400 text-sm group-hover:text-white">
+                  <Upload className="w-8 h-8 text-ink-subtle group-hover:text-accent mx-auto mb-2" />
+                  <span className="text-ink-muted text-sm group-hover:text-ink">
                     {fileNames.length > 0
                       ? `${fileNames.length} file(s) selected`
                       : "Click to upload up to 3 images"}
@@ -569,7 +641,7 @@ export default function App() {
                     {fileNames.map((name, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 text-xs text-gray-400 bg-[#120516] p-2 rounded border border-gray-800"
+                        className="flex items-center gap-2 text-xs text-ink-muted bg-base p-2 rounded border border-gray-800"
                       >
                         <ImageIcon size={14} /> {name}
                       </div>
@@ -602,7 +674,7 @@ export default function App() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-[#e87ea1] text-[#120516] font-bold uppercase tracking-widest rounded flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-4 bg-accent text-accent-fg font-bold uppercase tracking-widest rounded flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
@@ -621,11 +693,11 @@ export default function App() {
       {/* =========================================================
          FOOTER
       ========================================================= */}
-      <footer className="py-12 bg-black text-center text-gray-600 text-sm border-t border-[#1e0b24]">
+      <footer className="py-12 bg-surface text-center text-ink-subtle text-sm border-t border-hairline">
         <div className="container mx-auto px-6 flex flex-col items-center">
           <p className="mb-4">&copy; 2026 Harden Made LLC. All Rights Reserved.</p>
 
-          <div className="flex items-center gap-2 group cursor-pointer transition-all duration-300 hover:text-white">
+          <div className="flex items-center gap-2 group cursor-pointer transition-all duration-300 hover:text-ink">
             <span>Created with</span>
             <Heart className="text-red-500 fill-red-500 animate-pulse" size={14} />
             <span>by</span>
@@ -634,14 +706,14 @@ export default function App() {
               href="https://moguldesignagency.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-[#1e0b24] px-4 py-2 rounded-full border border-[#e87ea1]/20 group-hover:border-[#e87ea1] group-hover:shadow-[0_0_15px_rgba(232,126,161,0.3)] transition-all duration-300"
+              className="flex items-center gap-2 bg-elevated px-4 py-2 rounded-full border border-accent/20 group-hover:border-accent group-hover:shadow-[0_0_15px_rgba(232,126,161,0.3)] transition-all duration-300"
             >
               <img
                 src="/Lightbulb.png"
                 alt="Mogul Design Agency"
                 className="w-4 h-4 object-contain group-hover:rotate-[360deg] transition-transform duration-700 ease-in-out"
               />
-              <span className="font-bold uppercase tracking-wider text-xs text-[#e87ea1]">
+              <span className="font-bold uppercase tracking-wider text-xs text-accent">
                 Mogul Design Agency
               </span>
             </a>
