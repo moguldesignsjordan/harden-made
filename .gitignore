@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Full-res source photos; the site serves the optimized set in public/portfolio/
+public/HardenMade/

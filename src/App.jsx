@@ -1,6 +1,6 @@
 // FULL APP.JSX: UPDATED WITH CUSTOM CROWN LOGO (/222.png)
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Star,
   Home,
@@ -27,6 +27,134 @@ import emailjs from "@emailjs/browser";
 /* ---------------------------------------------------------
    Utility to convert a File → FileList (for hidden fields)
 --------------------------------------------------------- */
+/* ---------------------------------------------------------
+   Portfolio: real completed jobs, grouped so visitors can
+   jump straight to the room they care about.
+--------------------------------------------------------- */
+const PORTFOLIO_FILTERS = ["All", "Kitchens", "Bathrooms", "Bedrooms", "Living"];
+
+const PORTFOLIO = [
+  {
+    src: "/portfolio/green-kitchen.jpg",
+    category: "Kitchens",
+    title: "Full Kitchen Detail",
+    caption:
+      "Sage cabinetry hand-wiped, quartz polished streak-free, and stainless buffed to a even finish.",
+  },
+  {
+    src: "/portfolio/great-room-living.jpg",
+    category: "Living",
+    title: "Great Room Reset",
+    caption:
+      "Leather conditioned, cushions squared, and travertine floors cleaned wall to wall.",
+  },
+  {
+    src: "/portfolio/canopy-bed-master.jpg",
+    category: "Bedrooms",
+    title: "Master Suite Turndown",
+    caption:
+      "Crisp linens, styled pillows, and a fresh towel presentation ready for check-in.",
+  },
+  {
+    src: "/portfolio/tiled-walk-in-shower.jpg",
+    category: "Bathrooms",
+    title: "Herringbone Walk-In Shower",
+    caption:
+      "Grout lines scrubbed, glass and matte black fixtures left spot-free.",
+  },
+  {
+    src: "/portfolio/double-vanity-suite.jpg",
+    category: "Bathrooms",
+    title: "Double Vanity Suite",
+    caption:
+      "Quartz counters cleared and polished, mirrors streak-free, amenities restocked.",
+  },
+  {
+    src: "/portfolio/master-suite-wide.jpg",
+    category: "Bedrooms",
+    title: "Master Suite, Full View",
+    caption:
+      "Wide-plank floors cleaned, rug reset, and every surface dusted top-down.",
+  },
+  {
+    src: "/portfolio/desert-view-bedroom.jpg",
+    category: "Bedrooms",
+    title: "Desert View Guest Room",
+    caption:
+      "Windows cleaned inside and out so the view is the first thing guests notice.",
+  },
+  {
+    src: "/portfolio/soaking-tub-bath.jpg",
+    category: "Bathrooms",
+    title: "Soaking Tub Surround",
+    caption:
+      "Tile deck degreased, tub detailed, and hardware polished to a clean shine.",
+  },
+  {
+    src: "/portfolio/king-suite-turndown.jpg",
+    category: "Bedrooms",
+    title: "King Suite Turnover",
+    caption:
+      "Hotel-style bed make with pressed linens and a rolled towel set.",
+  },
+  {
+    src: "/portfolio/master-suite-sitting-area.jpg",
+    category: "Bedrooms",
+    title: "Suite Sitting Area",
+    caption:
+      "Leather chairs wiped, glass doors cleaned, and floors detailed edge to edge.",
+  },
+  {
+    src: "/portfolio/guest-bath-vanity.jpg",
+    category: "Bathrooms",
+    title: "Guest Bath Detail",
+    caption:
+      "Vanity staged, mirror and fixtures polished, and supplies fully restocked.",
+  },
+  {
+    src: "/portfolio/multi-bed-guest-room.jpg",
+    category: "Bedrooms",
+    title: "Multi-Bed Guest Room",
+    caption:
+      "Three beds made to the same standard, carpet vacuumed in clean lines.",
+  },
+  {
+    src: "/portfolio/spa-shower-nook.jpg",
+    category: "Bathrooms",
+    title: "Spa Shower & Nook",
+    caption:
+      "Patterned floor tile deep cleaned and the shelving nook fully restyled.",
+  },
+  {
+    src: "/portfolio/wood-headboard-guest-room.jpg",
+    category: "Bedrooms",
+    title: "Guest Room Turnover",
+    caption:
+      "Bed dressed, bench squared to the frame, and the rug reset straight.",
+  },
+  {
+    src: "/portfolio/desert-art-bedroom.jpg",
+    category: "Bedrooms",
+    title: "Accent Wall Bedroom",
+    caption:
+      "Fresh linens, dusted art, and floors cleaned under and around the frame.",
+  },
+  {
+    src: "/portfolio/powder-room-detail.jpg",
+    category: "Bathrooms",
+    title: "Powder Room",
+    caption:
+      "Small space, same standard: sanitized, restocked, and styled.",
+  },
+  {
+    src: "/portfolio/queen-guest-room.jpg",
+    category: "Bedrooms",
+    title: "Queen Guest Room",
+    caption:
+      "Bed made, nightstands cleared, and blinds dusted slat by slat.",
+  },
+];
+
 function createFileList(file) {
   if (!file) return null;
   const dataTransfer = new DataTransfer();
@@ -111,6 +239,42 @@ export default function App() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+
+  // Gallery: active category filter and the photo open in the lightbox.
+  const [galleryFilter, setGalleryFilter] = useState("All");
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  const visiblePhotos =
+    galleryFilter === "All"
+      ? PORTFOLIO
+      : PORTFOLIO.filter((p) => p.category === galleryFilter);
+
+  const photoCount = visiblePhotos.length;
+
+  const closeLightbox = () => setLightboxIndex(null);
+  const stepLightbox = useCallback(
+    (delta) =>
+      setLightboxIndex((i) =>
+        i === null ? i : (i + delta + photoCount) % photoCount
+      ),
+    [photoCount]
+  );
+
+  // Arrow keys and Escape drive the lightbox once it is open.
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowRight") stepLightbox(1);
+      if (e.key === "ArrowLeft") stepLightbox(-1);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [lightboxIndex, stepLightbox]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -282,7 +446,7 @@ export default function App() {
       >
         {/* Background photo */}
         <img
-          src="/kitchen-island.jpeg"
+          src="/portfolio/green-kitchen.jpg"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover z-0"
@@ -474,35 +638,150 @@ export default function App() {
       ========================================================= */}
       <section id="gallery" className="py-24 bg-elevated border-t border-accent/10">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-accent uppercase tracking-widest text-sm font-bold mb-3">
               Our Work
             </h2>
             <h3 className="text-4xl font-serif font-bold">See the Difference</h3>
+            <p className="text-ink-muted mt-4 max-w-2xl mx-auto">
+              Real homes we've turned over across the East Valley — every photo
+              below is our own finished work, not a stock image.
+            </p>
             <div className="w-24 h-1 bg-accent mx-auto mt-6"></div>
           </div>
 
-<div className="grid md:grid-cols-3 gap-6">
-  {[
-    { src: "/master-bedroom.jpeg", alt: "Master bedroom turnover with fresh linens" },
-    { src: "/guest-bedroom.jpeg", alt: "Guest bedroom reset and detailed" },
-    { src: "/second-bedroom.jpeg", alt: "Second bedroom prepared for the next guest" },
-  ].map(({ src, alt }, i) => (
-    <div
-      key={i}
-      className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-accent/20 hover:border-accent transition-all duration-300"
-    >
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-base/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-    </div>
-  ))}
-</div>
+          {/* Category filters */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {PORTFOLIO_FILTERS.map((label) => {
+              const count =
+                label === "All"
+                  ? PORTFOLIO.length
+                  : PORTFOLIO.filter((p) => p.category === label).length;
+              const active = galleryFilter === label;
+              return (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setGalleryFilter(label);
+                    setLightboxIndex(null);
+                  }}
+                  className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest border transition-all duration-300 ${
+                    active
+                      ? "bg-accent text-accent-fg border-accent"
+                      : "border-hairline text-ink-muted hover:border-accent hover:text-accent"
+                  }`}
+                >
+                  {label}
+                  <span className="ml-2 opacity-60">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Photo grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visiblePhotos.map((photo, i) => (
+              <button
+                key={photo.src}
+                onClick={() => setLightboxIndex(i)}
+                className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-accent/20 hover:border-accent transition-all duration-300 text-left focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <img
+                  src={photo.src}
+                  alt={photo.title + " — " + photo.caption}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                {/* Caption panel: always legible on mobile, reveals on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+                <div className="absolute inset-x-0 bottom-0 p-5">
+                  <span className="inline-block mb-2 px-2.5 py-1 rounded-full bg-accent/90 text-accent-fg text-[10px] font-bold uppercase tracking-widest">
+                    {photo.category}
+                  </span>
+                  <h4 className="text-white font-serif text-xl font-bold leading-snug">
+                    {photo.title}
+                  </h4>
+                  <p className="text-white/80 text-sm mt-1 max-h-0 opacity-0 group-hover:max-h-24 group-hover:opacity-100 transition-all duration-300 overflow-hidden">
+                    {photo.caption}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <p className="text-center text-ink-muted mt-12">
+            Want your place to look like this?{" "}
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="text-accent font-bold hover:underline"
+            >
+              Get a free quote
+            </button>
+          </p>
         </div>
+
+        {/* Lightbox */}
+        {lightboxIndex !== null && visiblePhotos[lightboxIndex] && (
+          <div
+            className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4 sm:p-8"
+            onClick={closeLightbox}
+            role="dialog"
+            aria-modal="true"
+            aria-label={visiblePhotos[lightboxIndex].title}
+          >
+            <button
+              onClick={closeLightbox}
+              className="absolute top-5 right-5 text-white/70 hover:text-white"
+              aria-label="Close"
+            >
+              <X size={32} />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                stepLightbox(-1);
+              }}
+              className="absolute left-3 sm:left-8 text-white/60 hover:text-white p-3"
+              aria-label="Previous photo"
+            >
+              <ArrowRight size={32} className="rotate-180" />
+            </button>
+
+            <figure
+              className="max-w-5xl w-full flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={visiblePhotos[lightboxIndex].src}
+                alt={visiblePhotos[lightboxIndex].title}
+                className="max-h-[72vh] w-auto max-w-full object-contain rounded-lg shadow-2xl"
+              />
+              <figcaption className="mt-5 text-center max-w-xl">
+                <h4 className="text-white font-serif text-2xl font-bold">
+                  {visiblePhotos[lightboxIndex].title}
+                </h4>
+                <p className="text-white/70 mt-2">
+                  {visiblePhotos[lightboxIndex].caption}
+                </p>
+                <p className="text-white/40 text-xs uppercase tracking-widest mt-3">
+                  {lightboxIndex + 1} / {visiblePhotos.length}
+                </p>
+              </figcaption>
+            </figure>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                stepLightbox(1);
+              }}
+              className="absolute right-3 sm:right-8 text-white/60 hover:text-white p-3"
+              aria-label="Next photo"
+            >
+              <ArrowRight size={32} />
+            </button>
+          </div>
+        )}
       </section>
 
       {/* =========================================================
